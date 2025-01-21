@@ -12,6 +12,14 @@ Android device:
 
 <img width="400" src="screenshots/notifications.png"/>
 
+## Build
+
+If you just want to build the software, run
+
+```console
+go build ./cmd/alertmanager-ntfy
+```
+
 ## Configuration
 
 The primary way to configure the service is through a YAML configuration file.

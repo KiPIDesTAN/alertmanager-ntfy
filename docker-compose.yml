@@ -1,0 +1,11 @@
+services:
+  alertmanager-ntfy:
+    image: ghcr.io/kipidestan/alertmanager-ntfy:latest
+    restart: "unless-stopped"
+    ports:
+      - 8000:8000
+    # Environment variables
+    environment:
+      TZ: "America/New_York" # Timezone
+    volumes:
+      - ./config.example.yml:/config.yml:ro

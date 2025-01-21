@@ -1,12 +1,12 @@
-name: Scan and Publish Docker Image
+name: Build and Publish Docker Image
 
-on:
-  push:
-    branches: [ main ]
+  #on:
+  # push:
+  #  branches: [ main ]
     # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
-  pull_request:
-      branches: [ main ]
+    #  tags: [ 'v*.*.*' ]
+    # pull_request:
+    #  branches: [ main ]
 
 
 env:

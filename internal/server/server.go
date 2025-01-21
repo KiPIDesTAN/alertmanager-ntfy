@@ -11,8 +11,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/alexbakker/alertmanager-ntfy/internal/alertmanager"
-	"github.com/alexbakker/alertmanager-ntfy/internal/config"
+	"github.com/kipidestan/alertmanager-ntfy/internal/alertmanager"
+	"github.com/kipidestan/alertmanager-ntfy/internal/config"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"

@@ -1,14 +1,12 @@
 name: Build and Publish Docker Image
 
-
 on:
   push:
     branches: [ main ]
-      #  Publish semver tags as releases.
-      tags: [ 'v*.*.*' ]
-    pull_request:
+    # Publish semver tags as releases.
+    tags: [ 'v*.*.*' ]
+  pull_request:
       branches: [ main ]
-
 
 env:
   # Use docker.io for Docker Hub if empty

@@ -1,16 +1,79 @@
-name: build
-on: [pull_request, push]
+name: Scan and Publish Docker Image
+
+on:
+  push:
+    branches: [ main ]
+    # Publish semver tags as releases.
+    tags: [ 'v*.*.*' ]
+  pull_request:
+      branches: [ main ]
+
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+
 jobs:
-  build:
+  govulncheck_job:
     runs-on: ubuntu-latest
+
+    name: Run govulncheck
     steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@de22e16c4711fca50c816cc9081563429d1cf563
+      - id: govulncheck
+        uses: golang/govulncheck-action@v1
         with:
-          diagnostic-endpoint:
-      - name: Build
-        run: |
-          nix build --print-build-logs
-      - name: Check
-        run: |
-          nix flake check
+           cache: false
+  
+  build_job:
+    name: Build and Test Docker Image
+    needs: govulncheck_job
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Clean Repository Name
+        id: toLowerCase
+        run: echo "REPO_NAME=${REPO_NAME,,}" >> "${GITHUB_ENV}"
+        env:
+          REPO_NAME: '${{ github.repository }}'
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REPO_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build and push
+        id: push-step
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta.outputs.tags }}
+

@@ -20,6 +20,91 @@ If you just want to build the software, run
 go build ./cmd/alertmanager-ntfy
 ```
 
+## Test
+
+### Test from alertmanager-ntfy
+Testing alertmanager-ntfy's ability to send an alert to ntfy is straight forward.
+
+After modifying your config.yml and authentication, create a text file named alert.json with the following information in it.
+
+```json
+{
+  "receiver": "ntfy",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "HighCPUUsage",
+        "severity": "critical",
+        "instance": "localhost:9090"
+      },
+      "annotations": {
+        "summary": "CPU usage is above 90% on instance localhost:9090"
+      },
+      "startsAt": "2025-01-21T13:32:13.000Z",
+      "endsAt": "2025-01-21T14:32:13.000Z",
+      "generatorURL": "http://localhost:9090/graph?g0.expr=cpu_usage%3E90&g0.tab=1"
+    }
+  ],
+  "groupLabels": {
+    "alertname": "HighCPUUsage"
+  },
+  "commonLabels": {
+    "alertname": "HighCPUUsage",
+    "severity": "critical",
+    "instance": "localhost:9090"
+  },
+  "commonAnnotations": {
+    "summary": "CPU usage is above 90% on instance localhost:9090"
+  },
+  "externalURL": "http://localhost:9093",
+  "version": "4",
+  "groupKey": "{}:{alertname=\"HighCPUUsage\"}"
+}
+```
+
+Run the following curl command from the same directory where the alert.json file was created. Make sure to replace username and password with the values found in the config.yml file at http.auth.username and http.http.password.
+
+```console
+curl -X POST http://localhost:8000/hook \
+     -H "Content-Type: application/json" \
+     -u "<username>:<password>" \
+     -d @alert.json
+```
+
+You should receive an alert if this is successful. This would confirm transmission 
+
+### Testing from Prometheus Alerts Manager
+
+To test from Prometheus Alerts Manager and test transmission from the Alerts Manager to Alerts Manager Nfty to Ntfy, create a new file called 'high_cpu.json' with the info below.
+
+```json
+[
+  {
+    "labels": {
+      "alertname": "HighCPUUsage",
+      "severity": "critical",
+      "instance": "localhost:9100"
+    },
+    "annotations": {
+      "summary": "CPU usage is above 90% on instance localhost:9100"
+    },
+    "startsAt": "2025-01-21T13:32:13.000Z",
+    "endsAt": null,
+    "generatorURL": "http://localhost:9090/graph?g0.expr=cpu_usage%3E90&g0.tab=1"
+  }
+]
+```
+
+Run the following curl command
+
+```console
+curl -X POST http://localhost:9093/api/v2/alerts \
+     -H "Content-Type: application/json" \
+     -d @high_cpu.json
+```
+
 ## Configuration
 
 The primary way to configure the service is through a YAML configuration file.
